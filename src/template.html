@@ -16,7 +16,8 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Rajdhani:wght@500;600;700&family=Permanent+Marker&family=Patrick+Hand&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script>try{var t=JSON.parse(localStorage.getItem('thegrid.theme.v1'));if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 /*CSS*/
 </style>
@@ -44,6 +45,7 @@
       <div class="row">
         <button class="btn lime" id="btnResume" style="display:none">Resume game</button>
         <button class="btn ghost" id="btnHow">How to play</button>
+        <button class="btn ghost" id="btnTitleSet">&#9881; Settings</button>
       </div>
     </div>
   </section>
@@ -114,15 +116,20 @@
   <div class="row"><button class="btn ghost" data-close="m-diff">Done</button></div>
 </div></div>
 
-<div class="modal" id="m-set"><div class="sheet" style="width:min(640px,100%)">
+<div class="modal" id="m-set"><div class="sheet" style="width:min(680px,100%)">
   <h2>SETTINGS</h2>
+  <p class="lbl">Theme</p>
+  <div class="themes" id="themeSeg"></div>
   <div class="setrow"><span class="who">SOUND</span><button class="btn" id="btnSound" style="min-width:150px">ON</button></div>
   <div id="setCpus"></div>
-  <div class="row">
+  <div class="row game-only">
     <button class="btn lime" id="btnRestart">Restart</button>
     <button class="btn warn" id="btnNewGame">New game</button>
+    <button class="btn mg" id="btnQuit">Quit to menu</button>
+  </div>
+  <div class="row">
     <button class="btn ghost" id="btnSetHow">How to play</button>
-    <button class="btn" data-close="m-set" style="margin-left:auto">Resume</button>
+    <button class="btn" data-close="m-set" id="btnSetClose" style="margin-left:auto">Resume</button>
   </div>
 </div></div>
 

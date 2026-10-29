@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eyeball Console</title>
+<style>
+:root{--bg:#0d1117;--panel:#141b26;--nested:#1a2230;--edge:#27303f;--edge-2:#334055;
+--ink-1:#e8edf5;--ink-2:#9fb0c7;--ink-3:#6b7d96;--good:#3fb950;--good-bg:rgba(63,185,80,.13);
+--warn:#d29922;--warn-bg:rgba(210,153,34,.13);--bad:#f85149;--bad-bg:rgba(248,81,73,.13);
+--info:#58a6ff;--info-bg:rgba(88,166,255,.13);--r:10px;--r-s:7px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink-1);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:26px 22px 90px}
+header.top{margin:0}
+h1{margin:0 0 6px;font-size:25px;letter-spacing:-.01em}
+.sub{color:var(--ink-2);font-size:14px;margin:0}.sub b{color:var(--ink-1);font-weight:600}
+.bar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:0 0 22px;padding:16px 0 18px;position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--edge)}
+button{font:inherit;font-size:13.5px;cursor:pointer;border-radius:var(--r-s);border:1px solid var(--edge-2);background:var(--nested);color:var(--ink-1);padding:7px 13px;transition:border-color .12s,background .12s,color .12s}
+button:hover{border-color:var(--info);color:#fff}
+button.pri{background:var(--info-bg);border-color:var(--info);color:#cfe4ff}
+.counts{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.cpill{font-size:12.5px;padding:4px 10px;border-radius:99px;border:1px solid var(--edge-2);color:var(--ink-2);white-space:nowrap}
+.cpill b{color:var(--ink-1)}.cpill.g{border-color:var(--good);color:var(--good)}.cpill.r{border-color:var(--bad);color:var(--bad)}.cpill.o{border-color:var(--warn);color:var(--warn)}
+.cpill.left{background:var(--warn-bg);font-size:13.5px;font-weight:700;padding:4px 12px;color:#f0dcae}.cpill.left b{color:#ffd27a}.cpill.left.g{background:var(--good-bg);color:#9ae6a6}
+h2.sec{margin:34px 0 4px;font-size:17px;letter-spacing:.02em;padding-bottom:8px;border-bottom:1px solid var(--edge);display:flex;align-items:baseline;gap:10px}
+h2.sec .n{color:var(--info)}h2.sec .meta{margin-left:auto;font-size:12.5px;color:var(--ink-3);font-weight:400}
+p.secnote{color:var(--ink-2);font-size:13.5px;margin:10px 0 16px}
+.item{background:var(--panel);border:1px solid var(--edge);border-radius:var(--r);padding:15px 17px;margin:11px 0;transition:border-color .12s}
+.item.done{border-color:rgba(63,185,80,.42)}.item.fail{border-color:rgba(248,81,73,.45)}.item.attn{border-color:rgba(210,153,34,.42)}
+.ih{display:flex;gap:11px;align-items:flex-start}
+.tag{flex:none;font-size:11.5px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:5px;background:var(--nested);border:1px solid var(--edge-2);color:var(--ink-2);margin-top:2px}
+.it{font-weight:600;font-size:15.5px;margin:0;flex:1}
+.body{margin:10px 0 0;color:var(--ink-2);font-size:14px}.body p{margin:0 0 8px}.body p:last-child{margin-bottom:0}
+.body b{color:var(--ink-1)}.body code{background:var(--nested);border:1px solid var(--edge);border-radius:4px;padding:1px 5px;font-size:.9em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#b8cdea}
+.body ol,.body ul{margin:6px 0 8px;padding-left:20px}.body li{margin:3px 0}
+.callout{border-left:3px solid var(--info);background:var(--info-bg);padding:9px 12px;border-radius:0 var(--r-s) var(--r-s) 0;margin:10px 0;font-size:13.5px;color:#cfe0f5}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-bg);color:#f0dcae}
+.callout .lb{display:block;font-weight:700;letter-spacing:.05em;font-size:11.5px;text-transform:uppercase;margin-bottom:4px;opacity:.85}
+.opts{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 0}
+button.opt{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;padding:6px 12px;border-radius:99px;border:1px solid var(--edge-2);background:var(--nested);color:var(--ink-2);cursor:pointer;transition:all .12s;user-select:none;font-family:inherit}
+button.opt:hover{border-color:var(--ink-3);color:var(--ink-1)}
+button.opt:focus-visible{outline:none;border-color:var(--info);box-shadow:0 0 0 3px var(--info-bg)}
+button.opt.on{color:#fff}
+button.opt.on[data-k="pass"]{background:var(--good-bg);border-color:var(--good);color:#9ae6a6}
+button.opt.on[data-k="fail"]{background:var(--bad-bg);border-color:var(--bad);color:#f7a9a4}
+button.opt.on[data-k="na"]{background:var(--nested);border-color:var(--ink-3);color:var(--ink-1)}
+button.opt.on[data-k="a"],button.opt.on[data-k="b"],button.opt.on[data-k="c"]{background:var(--info-bg);border-color:var(--info);color:#cfe4ff}
+textarea{width:100%;margin-top:10px;background:var(--nested);border:1px solid var(--edge);border-radius:var(--r-s);color:var(--ink-1);font:inherit;font-size:13.5px;padding:9px 11px;min-height:46px;resize:vertical;line-height:1.45}
+textarea:focus{outline:none;border-color:var(--info)}textarea::placeholder{color:var(--ink-3)}
+.spill{flex:none;font-size:11.5px;padding:3px 9px;border-radius:99px;border:1px solid var(--info);background:var(--info-bg);color:#cfe4ff;margin-top:2px;white-space:nowrap}.spill:empty{display:none}
+.shotz{margin-top:8px;border:1px dashed var(--edge-2);border-radius:var(--r-s);padding:9px 12px;font-size:13px;color:var(--ink-3);text-align:center;cursor:pointer}
+.shotz:focus,.shotz.over{outline:none;border-color:var(--info);color:var(--ink-1);background:var(--info-bg)}
+.shots{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}.shots:empty{display:none}.shot{position:relative;margin:0}
+.shot img{display:block;max-height:160px;max-width:100%;border:1px solid var(--edge-2);border-radius:var(--r-s);cursor:zoom-in}
+.shot figcaption{font-size:11.5px;color:var(--ink-3);margin-top:3px}
+button.shx{position:absolute;top:5px;right:5px;padding:0 7px;font-size:15px;line-height:21px;border-radius:99px;background:rgba(13,17,23,.85)}
+dialog{border:1px solid var(--edge-2);border-radius:var(--r);background:var(--panel);color:var(--ink-1);max-width:900px;width:92vw;padding:0}
+dialog::backdrop{background:rgba(0,0,0,.72)}
+.dh{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--edge)}.dh h3{margin:0;font-size:16px}.dh .sp{margin-left:auto;display:flex;gap:8px}
+dialog textarea{margin:0;border:none;border-radius:0;min-height:56vh;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+#dlgImg{max-width:1400px}#dlgImg .ib{padding:12px;background:var(--bg)}#dlgImg img{display:block;max-width:100%;max-height:78vh;margin:0 auto}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(calc(100% + 40px));background:var(--good-bg);border:1px solid var(--good);color:#9ae6a6;padding:10px 20px;border-radius:99px;font-size:13.5px;transition:transform .22s ease;z-index:99}
+.toast.up{transform:translateX(-50%) translateY(0)}.toast{width:max-content;max-width:92vw;text-align:center}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--edge);color:var(--ink-3);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <h1 id="hTitle">Eyeball</h1>
+  <p class="sub" id="hSub"></p>
+  <p class="sub" style="margin-top:6px">Answer each one, then <b>Export</b> and paste it back. Paste a screenshot into any item with <b>Cmd+V</b>. Answers and screenshots save to this browser as you go.</p>
+</header>
+<div class="bar" id="bar">
+  <button class="pri" id="bMd">Export Markdown</button>
+  <button class="pri" id="bJson">Export JSON</button>
+  <button id="bShots">Download screenshots</button>
+  <button id="bNext">Jump to next unanswered</button>
+  <button id="bReset">Clear my answers</button>
+  <div class="counts" id="counts"></div>
+</div>
+<div id="app"></div>
+<footer id="hFoot"></footer>
+</div>
+<dialog id="dlg"><div class="dh"><h3 id="dlgT">Export</h3><div class="sp"><button class="pri" id="bCopy">Copy to clipboard</button><button id="bDl">Download</button><button id="bClose">Close</button></div></div><textarea id="dlgX" spellcheck="false"></textarea></dialog>
+<dialog id="dlgImg"><div class="dh"><h3 id="imgT">Screenshot</h3><div class="sp"><button id="bImgClose">Close</button></div></div><div class="ib"><img id="imgBig" alt=""></div></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* EYEBALL CONSOLE TEMPLATE (from GP Project Financials pass 81, 9/24/26).
+   Copy into the project's Feedback/ as "Eyeball Console - Pass <N> - <M.DD.YY>.html",
+   then edit ONLY this CFG block and SECTIONS. Keep the file 100% ASCII (entities in text).
+   Each item: id, tag (short chip), t (the check, one line), opts (PF or custom pairs), body (numbered steps in
+   test order + Pass = exactly what he should see + Fail = what would prove the defect). Items in the order to test.
+   Standing rule (umbrella CLAUDE.md, Eyeball Passes): every eyeball pass gets one of these; the export is pasted back.
+   Built in, nothing to fill (10/20/26): the sticky progress bar, and screenshots on every item (paste / drop, stored in
+   S[id].shots, named "Eyeball Shot - Pass <N> - <itemId> - <n>.jpg" in the export, saved by Download screenshots). */
+var CFG={
+ project:'The Grid',
+ pass:'1',
+ pageState:'local build 10/29/26, not pushed (the live iPad link is still the 9/29 version)',
+ sub:'Local build 10/29/26 &middot; not pushed yet, so the live iPad link is still the old version.',
+ sources:'Josh 10/29 request: quit game, more colours, theme setting (Neon, Pencil &amp; Paper, a new third), review fixes'
+};
+var PF=[['pass','Pass'],['fail','Fail'],['na','N/A - skip']];
+var OPEN='<li>Open <b>Projects/Personal/The Grid/index.html</b> in Safari or Chrome (double-click it in Finder).</li>';
+var SECTIONS=[
+{id:'A',title:'Leaving a game',meta:'the quit gap',
+ items:[
+ {id:'A1',tag:'quit',t:'Settings in a game has Quit to menu, and Resume brings the game back',opts:PF,
+  body:'<p><b>Steps:</b></p><ol>'+OPEN+'<li>Tap PLAY, then NEXT, then START. Draw two or three lines.</li><li>Tap the cog (top left). Tap <b>QUIT TO MENU</b>.</li><li>On the title screen tap <b>RESUME GAME</b>.</li></ol><p><b>Pass</b> = Quit lands on the title screen with a Resume game button, and Resume puts back every line you drew, same player&#39;s turn.</p><p><b>Fail</b> = No Quit button, quitting loses the game, or the CPU keeps playing while you are on the title.</p>'},
+ {id:'A2',tag:'confirm',t:'Restart and New game need a second tap',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>In a game, tap the cog. Tap <b>RESTART</b> once.</li><li>Wait 3 seconds without tapping.</li><li>Tap RESTART, then tap it again right away.</li></ol><p><b>Pass</b> = One tap only changes the button to TAP AGAIN (it changes back after about 2.5s); two quick taps restart the game.</p><p><b>Fail</b> = A single tap restarts or wipes the game.</p>'},
+ {id:'A3',tag:'title',t:'Settings opens from the title screen',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Go to the title screen. Tap <b>SETTINGS</b>.</li></ol><p><b>Pass</b> = Settings shows Theme and Sound with a DONE button, and no Restart / New game / Quit.</p><p><b>Fail</b> = No Settings button on the title, or the game-only buttons show there.</p>'}
+ ]},
+{id:'B',title:'Colours and themes',meta:'new',
+ items:[
+ {id:'B1',tag:'colours',t:'12 colours to pick from',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Tap PLAY. Pick 4 players.</li><li>Look at each player card.</li></ol><p><b>Pass</b> = Each card shows 12 colour dots in two rows of six; a colour another player has is crossed out.</p><p><b>Fail</b> = Still 8 colours, or two players can share one.</p>'},
+ {id:'B2',tag:'paper',t:'Pencil &amp; Paper: graph paper, pencil dots, marker lines, marker fill',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Cog (or title Settings), tap <b>Pencil &amp; Paper</b>.</li><li>Play a game and capture a few squares.</li></ol><p><b>Pass</b> = Graph-paper lines run through the dots, dots look pencilled, lines look like coloured marker, captured squares fill in with marker scribble.</p><p><b>Fail</b> = Glow left over, dots off the graph lines, or fills that look like stripes instead of colouring-in.</p>'},
+ {id:'B3',tag:'toy',t:'Toy Box (the new third theme) reads well',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Settings, tap <b>Toy Box</b>.</li><li>Play a game with 3 or 4 players.</li></ol><p><b>Pass</b> = Studs for dots, bricks for lines, 4-stud plates for captured squares; every player colour is easy to tell apart.</p><p><b>Fail</b> = A colour gets lost on the background, or bricks / plates look broken.</p>'},
+ {id:'B4',tag:'switch',t:'Switching theme mid-game keeps everyone&#39;s colour',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Mid-game, open the cog and switch through all three themes.</li><li>Close settings after each switch.</li></ol><p><b>Pass</b> = The board, scores and turn border redraw in the new theme each time; each player keeps the same colour slot.</p><p><b>Fail</b> = Scores reset, a player takes someone else&#39;s colour, or the game un-pauses wrong.</p>'},
+ {id:'B5',tag:'neon',t:'Neon still looks like it did',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Settings, tap <b>Neon</b>. Play a game.</li></ol><p><b>Pass</b> = Same glow look as before today.</p><p><b>Fail</b> = Anything about Neon looks different or worse.</p>'},
+ {id:'B6',tag:'a call',t:'Which theme will the kids reach for first?',opts:[['neon','Neon'],['paper','Pencil &amp; Paper'],['toy','Toy Box']],
+  body:'<p>Say in the notes anything any theme should change.</p>'}
+ ]},
+{id:'C',title:'Review fixes',meta:'bugs found in review',
+ note:'C1 was a real bug: the board was sized during the screen slide-in, about 1.5% too small, so taps drifted up to about 10px toward the far edge.',
+ items:[
+ {id:'C1',tag:'tap aim',t:'Taps land on the line you aim for, even at the far edge',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Start a 10-dot square game.</li><li>Tap the middle of lines along the far right and bottom edges.</li></ol><p><b>Pass</b> = The line you tapped is the one drawn every time.</p><p><b>Fail</b> = A neighbouring line gets drawn instead.</p>'},
+ {id:'C2',tag:'results',t:'Results confetti uses the winner&#39;s colour',opts:PF,
+  body:'<p><b>Steps:</b></p><ol><li>Finish a game where player 2 or later wins.</li><li>Tap <b>VIEW BOARD</b>, then <b>RESULTS</b>.</li></ol><p><b>Pass</b> = Confetti is in the winner&#39;s colour both times.</p><p><b>Fail</b> = Confetti switches to player 1&#39;s colour when reopened.</p>'}
+ ]}
+];
+document.title=CFG.project+' - Eyeball: pass '+CFG.pass;
+document.getElementById('hTitle').innerHTML=CFG.project+' &mdash; Eyeball: pass '+CFG.pass;
+document.getElementById('hSub').innerHTML=CFG.sub;
+document.getElementById('hFoot').innerHTML='Sources: '+CFG.sources;
+function today(){var d=new Date(),p=function(n){return(n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+var KEY=CFG.project.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-eyeball-pass-'+CFG.pass;var S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+SECTIONS.forEach(function(s){s.items.forEach(function(i){if(!S[i.id])S[i.id]={st:'',note:''}})});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));return true}catch(e){if(e&&(e.name==='QuotaExceededError'||e.name==='NS_ERROR_DOM_QUOTA_REACHED'||e.code===22))toast('Browser storage is full - download your screenshots, then remove some',6000);return false}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function cls(id){var st=S[id].st;if(st==='pass')return'item done';if(st==='fail')return'item fail';if(st&&st!=='na')return'item attn';return'item'}
+function meta(sec){var op=sec.items.filter(function(i){return!S[i.id].st}).length;return sec.meta+(op?' &middot; <b style="color:#d29922">'+op+' unanswered</b>':' &middot; complete')}
+function render(){var h='';SECTIONS.forEach(function(sec){h+='<h2 class="sec" id="sec-'+sec.id+'"><span class="n">'+sec.id+'.</span> '+sec.title+'<span class="meta">'+meta(sec)+'</span></h2>';if(sec.note)h+='<p class="secnote">'+sec.note+'</p>';
+ sec.items.forEach(function(it){h+='<div class="'+cls(it.id)+'" id="it-'+it.id+'" data-id="'+it.id+'"><div class="ih"><span class="tag">'+it.tag+'</span><p class="it">'+it.t+'</p><span class="spill" id="sp-'+it.id+'">'+spillTxt(it.id)+'</span></div><div class="body">'+it.body+'</div><div class="opts">';
+  it.opts.forEach(function(o){var on=S[it.id].st===o[0];h+='<button type="button" class="opt'+(on?' on':'')+'" data-k="'+o[0]+'" aria-pressed="'+on+'">'+o[1]+'</button>'});
+  h+='</div><textarea placeholder="Notes - what you saw, what you want changed" data-note="'+it.id+'">'+esc(S[it.id].note)+'</textarea><div class="shotz" tabindex="0" data-zone="'+it.id+'">Paste a screenshot here (Cmd+V) or drop an image</div><div class="shots" id="sh-'+it.id+'">'+shotsHtml(it.id)+'</div></div>'})});
+ document.getElementById('app').innerHTML=h;counts()}
+function counts(){var t=0,a=0,p=0,f=0;SECTIONS.forEach(function(s){s.items.forEach(function(i){t++;var st=S[i.id].st;if(st)a++;if(st==='pass')p++;if(st==='fail')f++})});
+ document.getElementById('counts').innerHTML='<span class="cpill"><b>'+a+'</b> / '+t+' answered</span><span class="cpill g"><b>'+p+'</b> pass</span>'+(f?'<span class="cpill r"><b>'+f+'</b> fail</span>':'')+(t-a?'<span class="cpill o left"><b>'+(t-a)+'</b> left</span>':'<span class="cpill g left">none left</span>')}
+document.getElementById('app').addEventListener('click',function(e){var b=e.target.closest('button.opt');if(!b)return;var box=b.closest('.item'),id=box.dataset.id,k=b.dataset.k;S[id].st=(S[id].st===k)?'':k;save();
+ box.querySelectorAll('button.opt').forEach(function(l){var on=l.dataset.k===S[id].st;l.classList.toggle('on',on);l.setAttribute('aria-pressed',on?'true':'false')});box.className=cls(id);counts();
+ var sec=SECTIONS.filter(function(s){return s.items.some(function(i){return i.id===id})})[0];document.querySelector('#sec-'+sec.id+' .meta').innerHTML=meta(sec)});
+document.getElementById('app').addEventListener('input',function(e){var id=e.target.dataset.note;if(!id)return;S[id].note=e.target.value;save()});
+/* Screenshots: S[id].shots=[{n,d,w,h,at}], S[id].shotN = the last n issued (never reused after a remove). */
+function shotsOf(id){return S[id].shots||[]}
+function shotName(id,n){return 'Eyeball Shot - Pass '+CFG.pass+' - '+id+' - '+n+'.jpg'}
+function spillTxt(id){var n=shotsOf(id).length;return n?n+(n===1?' shot':' shots'):''}
+function shotsHtml(id){return shotsOf(id).map(function(s){return '<figure class="shot"><img src="'+s.d+'" alt="'+esc(shotName(id,s.n))+'" title="Click to enlarge" data-big="'+s.n+'"><button type="button" class="shx" data-rm="'+s.n+'" title="Remove screenshot '+s.n+'">&times;</button><figcaption>#'+s.n+' &middot; '+s.w+' &times; '+s.h+'</figcaption></figure>'}).join('')}
+function paintShots(id){document.getElementById('sh-'+id).innerHTML=shotsHtml(id);document.getElementById('sp-'+id).textContent=spillTxt(id)}
+function hasFiles(dt){return !!(dt&&dt.types&&[].indexOf.call(dt.types,'Files')>=0)}
+function imgFiles(dt){if(!dt)return[];var f=[].slice.call(dt.files||[]).filter(function(x){return/^image\//.test(x.type)});
+ if(!f.length)[].slice.call(dt.items||[]).forEach(function(i){if(i.kind==='file'&&/^image\//.test(i.type)){var g=i.getAsFile();if(g)f.push(g)}});return f}
+function shrink(file){return new Promise(function(ok,no){var u=URL.createObjectURL(file),im=new Image();im.onerror=function(){URL.revokeObjectURL(u);no()};
+ im.onload=function(){var k=Math.min(1,1600/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.round(im.naturalWidth*k),h=Math.round(im.naturalHeight*k),c=document.createElement('canvas'),x=c.getContext('2d');
+  c.width=w;c.height=h;x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);URL.revokeObjectURL(u);ok({d:c.toDataURL('image/jpeg',0.85),w:w,h:h})};im.src=u})}
+function addShots(id,files){return files.reduce(function(p,f){return p.then(function(){return shrink(f).then(function(r){var o=S[id],n=Math.max(o.shotN||0,shotsOf(id).reduce(function(m,s){return Math.max(m,s.n)},0))+1;
+ o.shotN=n;o.shots=shotsOf(id).concat([{n:n,d:r.d,w:r.w,h:r.h,at:new Date().toISOString()}]);paintShots(id);if(save())toast('Screenshot '+n+' added to '+id)},function(){toast('That image could not be read')})})},Promise.resolve())}
+function onPaste(e){var box=e.target.closest&&e.target.closest('.item'),cd=e.clipboardData;if(!box)return;var f=imgFiles(cd);if(!f.length)return;
+ if(!(cd.types&&[].indexOf.call(cd.types,'text/plain')>=0))e.preventDefault();return addShots(box.dataset.id,f)}
+var app=document.getElementById('app'),dlgImg=document.getElementById('dlgImg');
+app.addEventListener('paste',onPaste);
+app.addEventListener('dragover',function(e){var z=e.target.closest('.shotz');if(!z||!hasFiles(e.dataTransfer))return;e.preventDefault();z.classList.add('over')});
+app.addEventListener('dragleave',function(e){var z=e.target.closest('.shotz');if(z&&!z.contains(e.relatedTarget))z.classList.remove('over')});
+app.addEventListener('drop',function(e){var z=e.target.closest('.shotz');if(!z)return;e.preventDefault();z.classList.remove('over');var f=imgFiles(e.dataTransfer);if(f.length)addShots(z.dataset.zone,f);else toast('Drop an image file (PNG or JPEG)')});
+window.addEventListener('dragover',function(e){if(hasFiles(e.dataTransfer))e.preventDefault()});window.addEventListener('drop',function(e){if(hasFiles(e.dataTransfer))e.preventDefault()});
+app.addEventListener('click',function(e){var box=e.target.closest('.item');if(!box)return;var id=box.dataset.id,rm=e.target.closest('[data-rm]'),bg=e.target.closest('[data-big]');
+ if(rm){var n=+rm.dataset.rm;if(!confirm('Remove screenshot '+n+' from '+id+'?'))return;S[id].shots=shotsOf(id).filter(function(s){return s.n!==n});save();paintShots(id);return}
+ if(bg){var s=shotsOf(id).filter(function(x){return x.n===+bg.dataset.big})[0];if(!s)return;document.getElementById('imgT').textContent=shotName(id,s.n);document.getElementById('imgBig').src=s.d;dlgImg.showModal()}});
+document.getElementById('bImgClose').onclick=function(){dlgImg.close()};
+function blobOf(d){var b=atob(d.split(',')[1]),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return new Blob([a],{type:'image/jpeg'})}
+document.getElementById('bShots').onclick=function(){var all=[],asked=true;SECTIONS.forEach(function(s){s.items.forEach(function(i){shotsOf(i.id).forEach(function(x){all.push([shotName(i.id,x.n),x.d])})})});
+ if(!all.length){toast('No screenshots yet - paste one into an item first');return}
+ if(all.length>1)try{asked=localStorage.getItem('eyeball-multi-dl-asked')==='1';localStorage.setItem('eyeball-multi-dl-asked','1')}catch(e){}
+ all.forEach(function(x,i){setTimeout(function(){var u=URL.createObjectURL(blobOf(x[1])),a=document.createElement('a');a.href=u;a.download=x[0];document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},1500)},i*400)});
+ toast(all.length+' screenshot'+(all.length===1?'':'s')+' downloaded - drop them in the project\'s Feedback/Eyeball/ folder so Claude can read them'+(asked?'':'. Chrome may ask once to allow multiple downloads - click Allow'),7000)};
+function label(it,k){var o=it.opts.filter(function(x){return x[0]===k})[0];return o?o[1]:'(unanswered)'}
+function strip(s){var d=document.createElement('div');d.innerHTML=s;return d.textContent.trim()}
+function toMd(){var d=today(),o=['# '+CFG.project+' - eyeball: pass '+CFG.pass+', '+d,'','Paste this back to Claude as-is.',''];
+ SECTIONS.forEach(function(sec){o.push('## '+sec.id+'. '+strip(sec.title));o.push('');sec.items.forEach(function(it){var st=S[it.id].st,n=S[it.id].note.trim();o.push('- **'+it.id+'** ['+it.tag+'] '+strip(it.t));o.push('  - **Answer:** '+(st?strip(label(it,st)):'UNANSWERED'));if(n)o.push('  - **Notes:** '+n.replace(/\n+/g,' '));var sh=shotsOf(it.id);if(sh.length)o.push('  - **Screenshots:** '+sh.map(function(x){return shotName(it.id,x.n)}).join(', '))});o.push('')});
+ var open=[];SECTIONS.forEach(function(s){s.items.forEach(function(i){if(!S[i.id].st)open.push(i.id)})});o.push('## Still unanswered');o.push('');o.push(open.length?open.join(', '):'None - everything answered.');return o.join('\n')}
+function toJson(){var o={project:CFG.project,reviewer:'Josh',date:today(),page_state:CFG.pageState,sections:[]};
+ SECTIONS.forEach(function(sec){var s={id:sec.id,title:strip(sec.title),items:[]};sec.items.forEach(function(it){s.items.push({id:it.id,tag:it.tag,item:strip(it.t),answer:S[it.id].st||null,answer_label:S[it.id].st?strip(label(it,S[it.id].st)):null,notes:S[it.id].note.trim()||null,screenshots:shotsOf(it.id).map(function(x){return shotName(it.id,x.n)})})});o.sections.push(s)});
+ o.unanswered=[];SECTIONS.forEach(function(s){s.items.forEach(function(i){if(!S[i.id].st)o.unanswered.push(i.id)})});return JSON.stringify(o,null,2)}
+var dlg=document.getElementById('dlg'),dx=document.getElementById('dlgX'),curName='eyeball.md';
+function show(title,text,name){document.getElementById('dlgT').textContent=title;dx.value=text;curName=name;dlg.showModal();try{dx.focus();dx.setSelectionRange(0,dx.value.length)}catch(e){}}
+document.getElementById('bMd').onclick=function(){show('Markdown - copy and paste back to Claude',toMd(),CFG.project.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-eyeball-'+today()+'.md')};
+document.getElementById('bJson').onclick=function(){show('JSON - copy and paste back to Claude',toJson(),CFG.project.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-eyeball-'+today()+'.json')};
+document.getElementById('bClose').onclick=function(){dlg.close()};
+document.getElementById('bCopy').onclick=function(){copy(dx.value,'Copied - paste it straight back to Claude')};
+document.getElementById('bDl').onclick=function(){var b=new Blob([dx.value],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=curName;a.click();URL.revokeObjectURL(u);toast('Downloaded')};
+document.getElementById('bReset').onclick=function(){if(!confirm('Clear every answer, note and screenshot?'))return;S={};SECTIONS.forEach(function(sec){sec.items.forEach(function(it){S[it.id]={st:'',note:''}})});save();render()};
+document.getElementById('bNext').onclick=function(){var nx=null;SECTIONS.forEach(function(s){s.items.forEach(function(i){if(!nx&&!S[i.id].st)nx=i.id})});if(!nx){toast('Everything is answered');return}var el=document.getElementById('it-'+nx);el.scrollIntoView({behavior:'smooth',block:'center'});el.style.transition='none';el.style.borderColor='#58a6ff';setTimeout(function(){el.style.transition='border-color .8s';el.style.borderColor=''},700)};
+function copy(t,msg){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast(msg)},function(){toast('Text is selected - press Cmd+C')})}else toast('Text is selected - press Cmd+C')}
+var tt=document.getElementById('toast'),tmr;function toast(m,ms){tt.textContent=m;tt.classList.add('up');clearTimeout(tmr);tmr=setTimeout(function(){tt.classList.remove('up')},ms||2200)}
+render();
+</script>
+</body>
+</html>
